@@ -131,7 +131,9 @@ public abstract class BaseExecutor implements Executor {
 
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    // 获取boundSql对象
     BoundSql boundSql = ms.getBoundSql(parameter);
+    // 生成缓存key值
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
@@ -149,10 +151,12 @@ public abstract class BaseExecutor implements Executor {
     List<E> list;
     try {
       queryStack++;
+      // 先从缓存中获取
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        // 如果缓存中没有，就从数据库中取
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -197,9 +201,12 @@ public abstract class BaseExecutor implements Executor {
       throw new ExecutorException("Executor was closed.");
     }
     CacheKey cacheKey = new CacheKey();
+    // statementId
     cacheKey.update(ms.getId());
+    // 分页信息
     cacheKey.update(rowBounds.getOffset());
     cacheKey.update(rowBounds.getLimit());
+    // 要执行的sql字符串
     cacheKey.update(boundSql.getSql());
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     TypeHandlerRegistry typeHandlerRegistry = ms.getConfiguration().getTypeHandlerRegistry();
@@ -223,6 +230,7 @@ public abstract class BaseExecutor implements Executor {
     }
     if (configuration.getEnvironment() != null) {
       // issue #176
+      // 当前环境
       cacheKey.update(configuration.getEnvironment().getId());
     }
     return cacheKey;
@@ -326,6 +334,7 @@ public abstract class BaseExecutor implements Executor {
     } finally {
       localCache.removeObject(key);
     }
+    // 将查询出来的结果集，放到一级缓存中
     localCache.putObject(key, list);
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);

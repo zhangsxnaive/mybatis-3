@@ -20,8 +20,17 @@ package org.apache.ibatis.parsing;
  */
 public class GenericTokenParser {
 
+  /**
+   * 开始标记（类似 #{ ）
+   */
   private final String openToken;
+  /**
+   * 结束标记
+   */
   private final String closeToken;
+  /**
+   * 标记处理器
+   */
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -30,15 +39,27 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /**
+   * 解析${}和#{}
+   *
+   * 主要实现了对配置文件、脚本等片段中占位符的解析、处理工作，并返回最终需要的数据。
+   * 解析工作由该方法完成，处理工作由处理器handler的handleToken()方法实现完成。
+   * @param text 需要解析的字符串
+   * @return 解析完成的sql字符串
+   */
   public String parse(String text) {
+    // 参与校验
     if (text == null || text.isEmpty()) {
       return "";
     }
     // search open token
+    // 查找开始标记，如果不存在，默认不存在占位符，直接返回原字符串。
     int start = text.indexOf(openToken);
     if (start == -1) {
       return text;
     }
+
+    // 将字符串转成字符数组
     char[] src = text.toCharArray();
     int offset = 0;
     final StringBuilder builder = new StringBuilder();

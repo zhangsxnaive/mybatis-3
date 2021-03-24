@@ -19,12 +19,16 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * SPI for cache providers.
+ * 对缓存提供者提供的SPI接口
  * <p>
  * One instance of cache will be created for each namespace.
+ * 为每一个命名空间都会创建一个实例
  * <p>
  * The cache implementation must have a constructor that receives the cache id as an String parameter.
+ * 缓存的实现必须提供一个构造参数接受一个String类型的参数作为缓存id
  * <p>
  * MyBatis will pass the namespace as id to the constructor.
+ * MyBatis将名称空间作为ID传递给构造函数
  *
  * <pre>
  * public MyCache(final String id) {
@@ -49,8 +53,10 @@ public interface Cache {
   /**
    * @param key
    *          Can be any object but usually it is a {@link CacheKey}
+   *          可以是任何对象，但是通常它是CacheKey
    * @param value
    *          The result of a select.
+   *          一次查询的结果
    */
   void putObject(Object key, Object value);
 

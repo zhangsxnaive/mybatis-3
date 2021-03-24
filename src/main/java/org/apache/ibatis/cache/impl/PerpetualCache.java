@@ -22,6 +22,7 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * Mybatis缓存的默认实现
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
@@ -29,7 +30,7 @@ public class PerpetualCache implements Cache {
   private final String id;
 
   /**
-   * 缓存对象，由HashMap实现
+   * 由HashMap实现缓存
    */
   private final Map<Object, Object> cache = new HashMap<>();
 

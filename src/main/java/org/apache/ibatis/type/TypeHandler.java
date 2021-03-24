@@ -22,6 +22,9 @@ import java.sql.SQLException;
 
 /**
  * @author Clinton Begin
+ * 负责JDBC Type与java Type之间的数据转换。
+ * 1. 负责对statement对象设置特定的参数
+ * 2. 对statement返回的结果集resultset，取出特定的列
  */
 public interface TypeHandler<T> {
 

@@ -29,6 +29,10 @@ import org.apache.ibatis.transaction.Transaction;
 
 /**
  * @author Clinton Begin
+ * MyBatis执行器接口
+ *
+ * 职责：MyBatis核心。负责SQL动态语句生成和查询缓存的维护。
+ *
  */
 public interface Executor {
 

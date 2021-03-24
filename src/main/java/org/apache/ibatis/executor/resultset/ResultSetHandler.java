@@ -24,6 +24,7 @@ import org.apache.ibatis.cursor.Cursor;
 
 /**
  * @author Clinton Begin
+ * 负责将resultSet集合转换成List
  */
 public interface ResultSetHandler {
 

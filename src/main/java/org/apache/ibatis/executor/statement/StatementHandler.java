@@ -27,6 +27,7 @@ import org.apache.ibatis.session.ResultHandler;
 
 /**
  * @author Clinton Begin
+ * 职责：负责处理JDBC的Statement的交互，包括对statement设置参数，以及将JDBC返回的resultSet结果集转换成List
  */
 public interface StatementHandler {
 

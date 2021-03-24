@@ -129,9 +129,20 @@ public abstract class BaseExecutor implements Executor {
     return doFlushStatements(isRollBack);
   }
 
+  /**
+   * 功能: BaseExecutor实现的查询方法
+   *
+   * @param ms            MappedStatement对象
+   * @param parameter     参数对象
+   * @param rowBounds     分页对象
+   * @param resultHandler 无结果集如何处理
+   * @return java.util.List<E>
+   * @date 2021/3/24 11:42 下午
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     // 获取boundSql对象
+    // 根据传入的参数动态获取SQL字符语句，使用BoundSql对象表示
     BoundSql boundSql = ms.getBoundSql(parameter);
     // 生成缓存key值
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
@@ -142,21 +153,24 @@ public abstract class BaseExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     ErrorContext.instance().resource(ms.getResource()).activity("executing a query").object(ms.getId());
+    // 判断执行器是否关闭
     if (closed) {
       throw new ExecutorException("Executor was closed.");
     }
+    // 清空本地缓存，如果 queryStack 为0，则要求清空本地缓存
     if (queryStack == 0 && ms.isFlushCacheRequired()) {
       clearLocalCache();
     }
     List<E> list;
     try {
       queryStack++;
-      // 先从缓存中获取
+      // 先从一级缓存中获取
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+      // 获取到 则对结果进行处理
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
-        // 如果缓存中没有，就从数据库中取
+        // 如果一级缓存中没有，就从数据库中取
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -328,14 +342,18 @@ public abstract class BaseExecutor implements Executor {
 
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
+    // 在缓存中，添加占位对象。此处占位符，和延迟加载有关，可见 DeferredLoad#canLoad 方法
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
+      // 执行数据库读操作
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+      // 从缓存中移除占位符
       localCache.removeObject(key);
     }
     // 将查询出来的结果集，放到一级缓存中
     localCache.putObject(key, list);
+    // 存储过程相关
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);
     }

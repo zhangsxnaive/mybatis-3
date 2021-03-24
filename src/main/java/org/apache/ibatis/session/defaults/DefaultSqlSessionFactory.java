@@ -33,6 +33,7 @@ import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
 /**
  * @author Clinton Begin
+ * SqlSessionFactory默认实现
  */
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
@@ -44,6 +45,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
   @Override
   public SqlSession openSession() {
+    // configuration.getDefaultExecutorType()默认的是SimpleExecutor
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
   }
 
@@ -87,13 +89,26 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  /**
+   * 功能: 从数据库中生成一个SQLSession
+   *
+   * @param execType Executor类型
+	 * @param level 数据库的默认隔离级别
+	 * @param autoCommit 是否自动提交事务
+   * @return org.apache.ibatis.session.SqlSession
+   * @date 2021/3/24 11:31 下午
+   */
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
+      // 获得 Environment 对象
       final Environment environment = configuration.getEnvironment();
+      // 获得Transaction对象
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      // 创建执行器对象
       final Executor executor = configuration.newExecutor(tx, execType);
+      // 生成一个DefaultSqlSession对象
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()

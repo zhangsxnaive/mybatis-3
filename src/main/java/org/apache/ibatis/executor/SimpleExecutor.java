@@ -58,10 +58,14 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      // 传入参数，创建StatementHandler对象来执行查询操作
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      // 创建jdbc中的statement对象
       stmt = prepareStatement(handler, ms.getStatementLog());
+      // 由StatementHandler执行查询操作
       return handler.query(stmt, resultHandler);
     } finally {
+      // 关闭StatementHandler对象
       closeStatement(stmt);
     }
   }
@@ -81,10 +85,21 @@ public class SimpleExecutor extends BaseExecutor {
     return Collections.emptyList();
   }
 
+  /**
+   * 功能: 创建jdbc中的statement对象
+   *
+   * @param handler StatementHandler对象
+	 * @param statementLog statementLog日志对象
+   * @return java.sql.Statement
+   * @date 2021/3/24 11:50 下午
+   */
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
+    // 获取数据库连接
     Connection connection = getConnection(statementLog);
+    // 创建 statement 或者 PrepareStatement
     stmt = handler.prepare(connection, transaction.getTimeout());
+    // 设置 SQL 上的参数。例如 PrepareStatement 对象上的占位符
     handler.parameterize(stmt);
     return stmt;
   }

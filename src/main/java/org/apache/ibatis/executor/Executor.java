@@ -33,6 +33,11 @@ import org.apache.ibatis.transaction.Transaction;
  *
  * 职责：MyBatis核心。负责SQL动态语句生成和查询缓存的维护。
  *
+ * 三个常用实现类：
+ *    BatchExecutor：重用语句并执行批量更新
+ *    ReuseExecutor：重用预处理语句prepared statement
+ *    SimpleExecutor：普通的执行器（默认）
+ *
  */
 public interface Executor {
 

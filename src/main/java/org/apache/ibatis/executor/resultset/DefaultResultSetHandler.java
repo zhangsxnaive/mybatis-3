@@ -181,16 +181,22 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   public List<Object> handleResultSets(Statement stmt) throws SQLException {
     ErrorContext.instance().activity("handling results").object(mappedStatement.getId());
 
+    // 多 ResultSet 的结果集合，每个 ResultSet 对应一个 Object 对象。实际上，每个 Object 对象是一个 List<Object> 对象
+    // 在不考虑存储过程的多ResultSet的情况，普通的查询就是一个ResultSet，也就是说multipleResults就一个元素
     final List<Object> multipleResults = new ArrayList<>();
 
     int resultSetCount = 0;
+    // 获得首个 ResultSet 对象，并封装成 ResultSetWrapper 对象
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 
+    // 获得ResultMap集合
     List<ResultMap> resultMaps = mappedStatement.getResultMaps();
     int resultMapCount = resultMaps.size();
     validateResultMapsCount(rsw, resultMapCount);
     while (rsw != null && resultMapCount > resultSetCount) {
+      // 获得ResultMap对象
       ResultMap resultMap = resultMaps.get(resultSetCount);
+      // 处理返回结果集，将结果添加到multipleResults中
       handleResultSet(rsw, resultMap, multipleResults, null);
       rsw = getNextResultSet(stmt);
       cleanUpAfterHandlingResultSet();
@@ -294,18 +300,25 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   private void handleResultSet(ResultSetWrapper rsw, ResultMap resultMap, List<Object> multipleResults, ResultMapping parentMapping) throws SQLException {
     try {
       if (parentMapping != null) {
+        // 存储过程会调用
         handleRowValues(rsw, resultMap, null, RowBounds.DEFAULT, parentMapping);
       } else {
+        // 如果没有自定义的 resultHandler，则创建默认的DefaultResultHandler
         if (resultHandler == null) {
+          // 创建默认的DefaultResultHandler
           DefaultResultHandler defaultResultHandler = new DefaultResultHandler(objectFactory);
+          // 处理resultSet，返回每一行的row
           handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);
+          // 添加defaultResultHandler处理结果到defaultResultHandler中
           multipleResults.add(defaultResultHandler.getResultList());
         } else {
+          // 处理resultSet，返回每一行的row
           handleRowValues(rsw, resultMap, resultHandler, rowBounds, null);
         }
       }
     } finally {
       // issue #228 (close resultsets)
+      // 关闭resultSet对象
       closeResultSet(rsw.getResultSet());
     }
   }

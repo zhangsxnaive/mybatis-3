@@ -45,11 +45,19 @@ import org.apache.ibatis.session.SqlSession;
  * 这个类是线程不安全类
  * Note that this class is not Thread-Safe.
  *
+ * SqlSession通常与ThreadLocal进行绑定，一个会话使用一个SqlSession，使用完毕之后需要close
+ *
  * @author Clinton Begin
  */
 public class DefaultSqlSession implements SqlSession {
 
+  /**
+   * 配置对象
+   */
   private final Configuration configuration;
+  /**
+   * SQL执行器
+   */
   private final Executor executor;
 
   private final boolean autoCommit;
@@ -132,6 +140,9 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+  /**
+   * 多个重载方法
+   */
   @Override
   public <E> List<E> selectList(String statement) {
     return this.selectList(statement, null);
@@ -147,9 +158,22 @@ public class DefaultSqlSession implements SqlSession {
     return selectList(statement, parameter, rowBounds, Executor.NO_RESULT_HANDLER);
   }
 
+  /**
+   * 功能: 执行批量查询
+   *
+   * @param statement statementId
+	 * @param parameter 请求参数
+	 * @param rowBounds 分页对象
+	 * @param handler NO_RESULT_HANDLER，没有返回集时处理
+   * @return java.util.List<E>
+   * @author 张书新
+   * @date 2021/3/24 11:37 下午
+   */
   private <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
+      // 取出对应 MappedStatement 对象
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行查询
       return executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

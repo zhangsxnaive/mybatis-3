@@ -22,12 +22,28 @@ import java.util.Properties;
  */
 public interface Interceptor {
 
+  /**
+   * 功能: 主要目的是为了增强逻辑，对之前的方法进行增强
+   * 只要被拦截的目标对象的目标方法被执行时，每次都会执行intercept方法
+   * @param invocation
+   * @return java.lang.Object
+   * @date 2021/3/23 10:47 上午
+   */
   Object intercept(Invocation invocation) throws Throwable;
 
+  /**
+   * 把当前的拦截器生成代理，存到拦截器链中
+   * @param target 要代理的对象
+   * @return 代理对象
+   */
   default Object plugin(Object target) {
     return Plugin.wrap(target, this);
   }
 
+  /**
+   * 获取配置文件的参数
+   * @param properties 配置文件plugin标签下的properties标签
+   */
   default void setProperties(Properties properties) {
     // NOP
   }

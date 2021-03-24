@@ -53,11 +53,23 @@ public class Plugin implements InvocationHandler {
     return target;
   }
 
+  /**
+   * 实现动态代理InvocationHandler接口invoke方法
+   *
+   * @param proxy  要代理的对象
+   * @param method 代理方法
+   * @param args   方法参数
+   * @return 代理对象
+   * @throws Throwable
+   */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
+      // 获取被拦截的类的方法列表，然后判断是否包含将要拦截的方法
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
       if (methods != null && methods.contains(method)) {
+        // 回调拦截器的intercept，执行拦截的逻辑
+        // 相当于执行代理类的增强逻辑
         return interceptor.intercept(new Invocation(target, method, args));
       }
       return method.invoke(target, args);

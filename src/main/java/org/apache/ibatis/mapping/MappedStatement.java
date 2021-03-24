@@ -29,6 +29,8 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * mapper.xml文件中SQL语句的封装，每个<select/> <insert/> <update/> <delete/> 对应一个mappedStatement对象
+ * 另外，比较特殊的是，<selectKey /> 解析后也是一个MappedStatement对象
  * @author Clinton Begin
  */
 public final class MappedStatement {

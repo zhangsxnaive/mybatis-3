@@ -103,6 +103,8 @@ public class Resources {
   /**
    * Returns a resource on the classpath as a Stream object
    *
+   * 通过类加载器将路径中的配置文件读取成字节输入流
+   *
    * @param loader   The classloader used to fetch the resource
    * @param resource The resource to find
    * @return The resource

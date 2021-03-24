@@ -92,31 +92,56 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
+    // 判断是否已经解析当前配置文件
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
+    // 标记已经解析
     parsed = true;
+    // parser是XPathParser解析器对象，读取节点内的数据。<configuration> 顶层标签
+    // 解析configuration节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
+  /**
+   * 功能: 解析配置文件，并将各个属性封装到Configuration对象中
+   *
+   * @param root
+   * @return void
+   * @date 2021/3/24 10:45 下午
+   */
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
+      // 解析 <properties> 标签
       propertiesElement(root.evalNode("properties"));
+      // 解析 <settings> 标签
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 加载自定义的VFS实现类
       loadCustomVfs(settings);
+      // 加载日志实现类
       loadCustomLogImpl(settings);
+      // 解析 <typeAliases> 标签
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 解析 <plugins> 标签
       pluginElement(root.evalNode("plugins"));
+      // 解析 <objectFactory> 标签
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 解析 <objectWrapperFactory> 标签
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析 <reflectorFactory> 标签
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 赋值 <settings> 标签的内容给到Configuration属性
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析 <environments> 标签
       environmentsElement(root.evalNode("environments"));
+      // 解析 <databaseIdProvider> 标签
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 解析 <typeHandlers> 标签
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 解析 <mappers> 标签
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -361,6 +386,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 将mapper中的标签封装成mappedStatement对象，然后添加到configuration对象中
+   * @param parent
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {

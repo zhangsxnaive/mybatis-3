@@ -155,6 +155,7 @@ public class Configuration {
 
   /**
    * 对配置文件中每一条sql或者说mapper中每一个方法的封装。
+   * KEY：${namespace}.${id}
    */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->

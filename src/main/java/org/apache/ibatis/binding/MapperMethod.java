@@ -56,9 +56,13 @@ public class MapperMethod {
 
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
+    // 判断 Mapper 中的方法类型，最终调用SQLSession中的方法
     switch (command.getType()) {
       case INSERT: {
+        // 转换参数
         Object param = method.convertArgsToSqlCommandParam(args);
+        // 执行insert操作
+        // 转换rowCount
         result = rowCountResult(sqlSession.insert(command.getName(), param));
         break;
       }
@@ -73,17 +77,24 @@ public class MapperMethod {
         break;
       }
       case SELECT:
+        // 方法无返回值，并且有 ResultHandler 参数，那将返回的结果给 ResultHandler 处理
         if (method.returnsVoid() && method.hasResultHandler()) {
           executeWithResultHandler(sqlSession, args);
           result = null;
         } else if (method.returnsMany()) {
+          // 返回List
           result = executeForMany(sqlSession, args);
         } else if (method.returnsMap()) {
+          // 返回map
           result = executeForMap(sqlSession, args);
         } else if (method.returnsCursor()) {
+          // 返回 cursor
           result = executeForCursor(sqlSession, args);
         } else {
+          // 返回单个对象
+          // 转换参数
           Object param = method.convertArgsToSqlCommandParam(args);
+          // 查询单条记录
           result = sqlSession.selectOne(command.getName(), param);
           if (method.returnsOptional()
               && (result == null || !method.getReturnType().equals(result.getClass()))) {
@@ -253,6 +264,7 @@ public class MapperMethod {
 
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
         Class<?> declaringClass, Configuration configuration) {
+      // 类名+方法名
       String statementId = mapperInterface.getName() + "." + methodName;
       if (configuration.hasStatement(statementId)) {
         return configuration.getMappedStatement(statementId);

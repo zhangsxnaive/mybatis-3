@@ -49,7 +49,9 @@ public class MapperProxyFactory<T> {
   }
 
   public T newInstance(SqlSession sqlSession) {
+    // 创建了JDK动态代理的invocationHandler接口的实现类MapperProxy
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
+    // 重载方法，调用JDK动态代理生成对象
     return newInstance(mapperProxy);
   }
 

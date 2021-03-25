@@ -393,14 +393,20 @@ public class XMLConfigBuilder extends BaseBuilder {
    */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历子节点
       for (XNode child : parent.getChildren()) {
+        // 判断如果是 package 标签，则扫描该包下所有接口
         if ("package".equals(child.getName())) {
+          // 获取包名
           String mapperPackage = child.getStringAttribute("name");
+          // 添加到configuration中
           configuration.addMappers(mapperPackage);
         } else {
+          // 获得 resource url class 属性值
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+          // 处理resource即类路径的资源引用
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             try(InputStream inputStream = Resources.getResourceAsStream(resource)) {
@@ -408,12 +414,14 @@ public class XMLConfigBuilder extends BaseBuilder {
               mapperParser.parse();
             }
           } else if (resource == null && url != null && mapperClass == null) {
+            // 处理url即完全限定资源定位符
             ErrorContext.instance().resource(url);
             try(InputStream inputStream = Resources.getUrlAsStream(url)){
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
               mapperParser.parse();
             }
           } else if (resource == null && url == null && mapperClass != null) {
+            // 处理映射器接口实现类的完全限定类名
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {

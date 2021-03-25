@@ -28,6 +28,10 @@ public class MybatisSourceTest {
     // 4. 根据 statementId 从 configuration 中的map集合中，获取到了MappedStatement对象
     //    将查询任务委派给了Executor执行器
     List<Object> objects = sqlSession.selectList("namespace.id");
+
+    sqlSession.commit();
+
+    sqlSession.close();
   }
 
   @Test

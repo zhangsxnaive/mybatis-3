@@ -2,7 +2,7 @@
 
 ## 1. 架构设计
 
-![image-20210324111301421](https://github.com/zhangsxnaive/mybatis-3/tree/master/README.assets/image-20210324111301421.png)
+![image-20210324111301421](https://raw.githubusercontent.com/zhangsxnaive/mybatis-3/master/README.assets/image-20210324111301421.png)
 
 我们把Mybatis的功能架构分为三层:
  (1) API接口层:提供给外部使用的接口 API，开发人员通过这些本地API来操纵数据库。接口层一接收
@@ -29,7 +29,7 @@
 | SqlSource        | 负责根据用户传递的parameterObject，动态地生成SQL语句，将信息封装到BoundSql对象中，并返回 |
 | BoundSql         | 表示动态生成的SQL语句以及相应的参数信息                      |
 
-![image-20210324111717277](https://github.com/zhangsxnaive/mybatis-3/tree/master/README.assets/image-20210324111717277.png)
+![image-20210324111717277](https://raw.githubusercontent.com/zhangsxnaive/mybatis-3/master/README.assets/image-20210324111717277.png)
 
 ## 3. 总体流程
 

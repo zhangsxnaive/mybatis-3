@@ -56,6 +56,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
 
   private String currentNamespace;
   private final String resource;
+  // 当前 cache 对象
   private Cache currentCache;
   private boolean unresolvedCacheRef; // issue #676
 
@@ -128,6 +129,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean readWrite,
       boolean blocking,
       Properties props) {
+    // 创建者模式创建cache对象
     Cache cache = new CacheBuilder(currentNamespace)
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
@@ -137,7 +139,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .blocking(blocking)
         .properties(props)
         .build();
+    // 添加到configuration对象
     configuration.addCache(cache);
+    // 赋值给MapperBuilderAssistant当前cache
     currentCache = cache;
     return cache;
   }
@@ -241,6 +245,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return new Discriminator.Builder(configuration, resultMapping, namespaceDiscriminatorMap).build();
   }
 
+  /**
+   * 创建MappedStatement对象，并添加到configuration中
+   */
   public MappedStatement addMappedStatement(
       String id,
       SqlSource sqlSource,
@@ -286,6 +293,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .resultSetType(resultSetType)
         .flushCacheRequired(valueOrDefault(flushCache, !isSelect))
         .useCache(valueOrDefault(useCache, isSelect))
+        // MappedStatement中也维护一份二级缓存对象
         .cache(currentCache);
 
     ParameterMap statementParameterMap = getStatementParameterMap(parameterMap, parameterType, id);

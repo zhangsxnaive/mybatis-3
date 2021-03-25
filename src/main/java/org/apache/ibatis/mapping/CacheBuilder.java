@@ -91,6 +91,7 @@ public class CacheBuilder {
 
   public Cache build() {
     setDefaultImplementations();
+    // 利用反射创建cache对象
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches

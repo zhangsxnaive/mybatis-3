@@ -90,10 +90,19 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * 功能: 解析映射配置文件
+   *
+   * @date 2021/3/25 4:31 下午
+   */
   public void parse() {
+    // 判断当前mapper是否已经处理
     if (!configuration.isResourceLoaded(resource)) {
+      // 解析 <mapper> 节点
       configurationElement(parser.evalNode("/mapper"));
+      // 标记已经解析过此节点
       configuration.addLoadedResource(resource);
+      // 绑定mapped
       bindMapperForNamespace();
     }
 
@@ -108,16 +117,24 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
+      // 获取namespace
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.isEmpty()) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      // 标记namespace
       builderAssistant.setCurrentNamespace(namespace);
+      // 解析<cache-ref />节点
       cacheRefElement(context.evalNode("cache-ref"));
+      // 解析 cache 节点
       cacheElement(context.evalNode("cache"));
+      // 解析parameterMap和resultMap节点
+      // 其中parameterMap属性已被启用
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析sql
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 生成 MappedStatement 对象（将生成的cache对象包装到此 MappedStatement 对象中），并放在configuration对象中
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -133,10 +150,13 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
+      // 创建 XMLStatementBuilder 对象
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
+        // 将每一条执行语句转成MappedStatement对象
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
+        // 解析失败，添加到Configuration对象中
         configuration.addIncompleteStatement(statementParser);
       }
     }
@@ -199,17 +219,26 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  // 解析 cache 标签
   private void cacheElement(XNode context) {
     if (context != null) {
+      // 解析cache的实现类，如果没有指定，默认为 PerpetualCache
       String type = context.getStringAttribute("type", "PERPETUAL");
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+      // 获得负责过期的 Cache 实现类
       String eviction = context.getStringAttribute("eviction", "LRU");
       Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+      // 清空缓存的频率。0代表不清空
       Long flushInterval = context.getLongAttribute("flushInterval");
+      // 缓存容器大小
       Integer size = context.getIntAttribute("size");
+      // 是否序列化
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
+      // 是否阻塞
       boolean blocking = context.getBooleanAttribute("blocking", false);
+      // 获取 Properties 属性
       Properties props = context.getChildrenAsProperties();
+      // 生成cache对象，然后注册到configuration对象中
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }

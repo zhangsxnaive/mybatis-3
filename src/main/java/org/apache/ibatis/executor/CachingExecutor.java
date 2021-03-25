@@ -33,11 +33,15 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * Executor装饰类，添加二级缓存功能
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class CachingExecutor implements Executor {
 
+  /**
+   * 被装饰对象
+   */
   private final Executor delegate;
   private final TransactionalCacheManager tcm = new TransactionalCacheManager();
 
@@ -56,11 +60,14 @@ public class CachingExecutor implements Executor {
     try {
       // issues #499, #524 and #573
       if (forceRollback) {
+        // 如果强制回滚，则同时TransactionalCacheManager也回滚
         tcm.rollback();
       } else {
+        // 如果提交，则同时TransactionalCacheManager也提交
         tcm.commit();
       }
     } finally {
+      // 执行Executor关闭方法
       delegate.close(forceRollback);
     }
   }
@@ -72,6 +79,7 @@ public class CachingExecutor implements Executor {
 
   @Override
   public int update(MappedStatement ms, Object parameterObject) throws SQLException {
+    // 如果需要刷新缓存则刷新缓存 <insert />、<update />、<delete /> 标签的flushCache属性默认为true
     flushCacheIfRequired(ms);
     return delegate.update(ms, parameterObject);
   }
@@ -85,6 +93,7 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 创建CacheKey对象
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
@@ -92,15 +101,22 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
+    // 获取当前namespace的缓存对象。（解析Mapper标签时，cache对象创建放到了Configuration对象一份，同时放到了MappedStatement对象中）
     Cache cache = ms.getCache();
+    // 如果cache对象为空，说明mapper中没有配置<cache />
     if (cache != null) {
+      // 如果需要刷新缓存则刷新缓存 <select /> 标签的flushCache属性默认为false
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
+        // 存储过程相关
         ensureNoOutParams(ms, boundSql);
+        // 从二级缓存中获取结果
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 如果缓存中为空，则调用被装饰的Executor对象的query方法，然后查询出来的结果放到缓存中
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 缓存查询结果
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
@@ -117,6 +133,7 @@ public class CachingExecutor implements Executor {
   @Override
   public void commit(boolean required) throws SQLException {
     delegate.commit(required);
+    // 缓存事务的提交
     tcm.commit();
   }
 
@@ -161,6 +178,9 @@ public class CachingExecutor implements Executor {
     delegate.clearLocalCache();
   }
 
+  /**
+   * 如果需要刷新缓存则刷新缓存（mapper映射文件中Select标签中的 flushCache属性）
+   */
   private void flushCacheIfRequired(MappedStatement ms) {
     Cache cache = ms.getCache();
     if (cache != null && ms.isFlushCacheRequired()) {

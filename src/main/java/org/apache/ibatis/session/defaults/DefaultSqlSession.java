@@ -215,8 +215,11 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public int update(String statement, Object parameter) {
     try {
+      // 标记 dirty 表明执行过修改操作
       dirty = true;
+      // 获取 MappedStatement 对象
       MappedStatement ms = configuration.getMappedStatement(statement);
+      // 执行更新操作
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);

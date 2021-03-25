@@ -680,6 +680,7 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // 当cacheEnable属性为（默认）true时，创建CachingExecutor装饰类装饰Executor类
     if (cacheEnabled) {
       // 装饰器模式
       executor = new CachingExecutor(executor);

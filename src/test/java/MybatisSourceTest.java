@@ -1,4 +1,5 @@
 import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
@@ -21,6 +22,8 @@ public class MybatisSourceTest {
 
     // 2. 解析配置文件，封装Configuration对象，创建DefaultSqlSessionFactory
     SqlSessionFactory build = new SqlSessionFactoryBuilder().build(resourceAsStream);
+
+    Configuration configuration = build.getConfiguration();
 
     // 3. 生产一个 DefaultSqlSession 对象，设置了事务不自动提交，完成 Executor 对象的创建并设置到DefaultSqlSession
     SqlSession sqlSession = build.openSession();
